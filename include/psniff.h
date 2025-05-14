@@ -1,4 +1,7 @@
 #ifndef PSNIFF_H
 # define PSNIFF_H
 
-#endif
+/* ----- Includes ------ */
+# include <pcap.h>
+
+#endif // !PSNIFF_H
