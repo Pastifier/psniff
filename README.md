@@ -21,3 +21,7 @@ You need to write a C program that compiles using Makefile and runs on linux (po
 6. Use a multi-threaded approach to solve this problem. The 1st thread reads from the interface and parses the host and user agent, storing the result in a queue. The 2nd thread reads from this queue and writes the results in the text file. (In order for the writing to file mechanism not to slow down the packet reading, and extraction.
 
 7. The program has to follow each new TCP connection and when connection is terminated it has to print the total number of packets transferred IN and OUT as well as duration of the connection in milliseconds. The data structure used for tracking connections should be designed for high speed processing, so not a normal array.
+
+
+## Helpful resources:
+- (Thread-safety with cond. vars)[https://stackoverflow.com/questions/4062126/can-2-pthread-condition-variables-share-the-same-mutex]
