@@ -5,20 +5,23 @@
 volatile t_context* g_cxt = NULL;
 
 void signal_handler(int sig) {
-	g_cxt->threads.running = false;
-	ps_queue_close(&g_cxt->queue);
-	// cleanup(g_cxt); // Remember: dynamically allocated: -- 
-	// DECISION: cleanup here or after threads join in main?
-	
-	// Summary goes here (maybe?) 
-
+	if (sig == SIGINT) {
+		g_cxt->running = false;
+		ps_queue_close(&g_cxt->queue);
+		// cleanup(g_cxt); // Remember: dynamically allocated: -- 
+		// DECISION: cleanup here or after threads join in main?
+		
+		// Summary goes here (maybe?) 
+	}
 }
 
 int main(int argc, char *argv[]) {
 	if (argc == 4) {
+		signal(SIGINT, signal_handler);
 		// TODO pcap init logic
 		// TODO hashmap create logic
 		static t_context cxt;// = (t_context){0}; // whether this or memset is faster remains to be seen.
+		g_cxt = &cxt;
 
 		ps_queue_init(&cxt.queue);
 

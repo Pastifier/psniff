@@ -1,17 +1,17 @@
 #include "psniff.h"
 
 bool ps_threads_init(t_context* cxt) {
-    if (pthread_create(&cxt->threads.producer, NULL, ps_producer_routine, cxt))
+    if (pthread_create(&cxt->producer_tid, NULL, ps_producer_routine, cxt))
         return false;
-    if (pthread_create(&cxt->threads.consumer, NULL, ps_consumer_routine, cxt))
+    if (pthread_create(&cxt->consumer_tid, NULL, ps_consumer_routine, cxt))
         return false;
     return true;
 }
 
 void ps_threads_join(t_context* cxt) {
-    pthread_join(cxt->threads.producer, NULL);
+    pthread_join(cxt->producer_tid, NULL);
     ps_queue_close(&cxt->queue);
-    pthread_join(cxt->threads.consumer, NULL);
+    pthread_join(cxt->consumer_tid, NULL);
 }
 
 
