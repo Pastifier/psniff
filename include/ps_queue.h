@@ -28,12 +28,14 @@ typedef struct s_parsed_packet {
 
     // Protocol: 6 = TCP, 17 = UDP, etc.
     uint8_t protocol;
+    uint8_t flags;
 
     struct timeval ts;
 
     char host[256];
     char user_agent[512];
     int has_http; // 1 if this contains HTTP info
+
 } t_parsed_packet;
 
 typedef struct s_packet_queue {
