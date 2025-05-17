@@ -9,6 +9,8 @@
 
 /* ----- Defines ------ */
 
+# define _PS_MAX_CONN 10000 // Realistically, if we get this many connections, something is wrong LOL...
+
 /* ----- Typedefs & Structs ------ */
 
 typedef struct s_tcp_conn {
