@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <signal.h>
 
-volatile t_context* g_cxt = NULL;
+t_context* g_cxt = NULL;
 
 void signal_handler(int sig) {
 	if (sig == SIGINT) {
