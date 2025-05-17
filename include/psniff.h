@@ -11,6 +11,7 @@
 /* ----- Defines ------ */
 
 # define _PS_MAX_CONN 10000 // Realistically, if we get this many connections, something is wrong LOL...
+# define _PS_CAPLEN 65535 // As per pcap(3PCAP), this number is sufficient
 
 /* ----- Typedefs & Structs ------ */
 
