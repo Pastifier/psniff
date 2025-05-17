@@ -19,8 +19,7 @@ int main(int argc, char *argv[]) {
 	if (argc == 4) {
 		signal(SIGINT, signal_handler);
 		// TODO pcap init logic
-		// TODO hashmap create logic
-		static t_context cxt;// = (t_context){0}; // whether this or memset is faster remains to be seen.
+		t_context cxt = (t_context){0};
 		g_cxt = &cxt;
 
 		ps_queue_init(&cxt.queue);
