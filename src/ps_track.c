@@ -32,3 +32,26 @@ static uint32_t hash_connection(struct in_addr src_ip, struct in_addr dst_ip,
 
     return hash % _PS_MAX_CONN;
 }
+
+/**
+ * Check if two connections are the same (in either direction)
+ */
+static int is_same_connection(const t_tcp_conn *conn, 
+                             struct in_addr src_ip, struct in_addr dst_ip,
+                             uint16_t src_port, uint16_t dst_port) {
+    if (conn->src_ip.s_addr == src_ip.s_addr && 
+        conn->dst_ip.s_addr == dst_ip.s_addr &&
+        conn->src_port == src_port && 
+        conn->dst_port == dst_port) {
+        return FORWARD;
+    }
+    
+    if (conn->src_ip.s_addr == dst_ip.s_addr && 
+        conn->dst_ip.s_addr == src_ip.s_addr &&
+        conn->src_port == dst_port && 
+        conn->dst_port == src_port) {
+        return REVERSE;
+    }
+    
+    return 0;
+}

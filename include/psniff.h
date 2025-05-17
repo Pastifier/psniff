@@ -13,6 +13,11 @@
 
 /* ----- Typedefs & Structs ------ */
 
+enum e_direction {
+    FORWARD = 1,
+    REVERSE
+};
+
 typedef struct s_tcp_conn {
     struct in_addr src_ip;
     struct in_addr dst_ip;
