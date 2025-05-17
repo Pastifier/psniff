@@ -1,3 +1,9 @@
+// Keywords
+// RESOURCE: marks resources to be released.
+// DECISION: marks decisions to be made.
+// REMEMBER: marks things to be remembered in the future (e.g. cleanup in branching paths).
+
+
 #ifndef PSNIFF_H
 # define PSNIFF_H
 
@@ -5,13 +11,15 @@
 # include <pcap.h>
 # include <stdbool.h>
 # include <stdatomic.h> // For _Atomic, __atomic_store_n()
+# include <stdlib.h>
 # include "ps_queue.h"
 # include "ps_threads.h"
 
 /* ----- Defines ------ */
 
-# define _PS_MAX_CONN 10000 // Realistically, if we get this many connections, something is wrong LOL...
-# define _PS_CAPLEN 65535 // As per pcap(3PCAP), this number is sufficient
+# define _PS_MAX_CONN 10000 // Realistically, if we get this many active connections, something is wrong LOL...
+# define _PS_PACKET_CAPLEN 65535 // As per pcap(3PCAP), this number is sufficient. Truncated
+# define _PS_PACKET_SNAPLEN 262144 // Full snapshot..?
 
 /* ----- Typedefs & Structs ------ */
 
@@ -36,16 +44,16 @@ typedef struct s_tcp_conn {
 } t_tcp_conn;
 
 typedef struct s_context {
-    pcap_t *handle;
-    FILE *output_file;
-    char *dev_name;
+    pcap_t *handle; // RESOURCE
+    FILE *output_file; // RESOURCE
+    // char *dev_name; // Might not need this, actually.
 
-    t_packet_queue queue;
+    t_packet_queue queue; // RESOURCE
 
     pthread_t producer_tid;
     pthread_t consumer_tid;
 
-    t_tcp_conn *connections;
+    t_tcp_conn *connections; // RESOURCE
 
     volatile _Atomic bool running;
 } t_context;
