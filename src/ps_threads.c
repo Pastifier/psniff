@@ -14,13 +14,6 @@ void ps_threads_join(t_context* cxt) {
     pthread_join(cxt->consumer_tid, NULL);
 }
 
-
-void *ps_producer_routine(void *arg) {
-(void)arg;
-    // t_context* cxt = (t_context*)arg;
-    return NULL;
-}
-
 void *ps_consumer_routine(void *arg) {
 (void)arg;
     // t_context* cxt = (t_context*)arg;
