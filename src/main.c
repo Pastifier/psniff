@@ -1,5 +1,18 @@
 #include "psniff.h"
 #include <stdio.h>
+#include <signal.h>
+
+volatile t_context* g_cxt = NULL;
+
+void signal_handler(int sig) {
+	g_cxt->threads.running = false;
+	ps_queue_close(&g_cxt->queue);
+	// cleanup(g_cxt); // Remember: dynamically allocated: -- 
+	// DECISION: cleanup here or after threads join in main?
+	
+	// Summary goes here (maybe?) 
+
+}
 
 int main(int argc, char *argv[]) {
 	if (argc == 4) {
