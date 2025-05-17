@@ -13,7 +13,7 @@ typedef struct s_context {
     t_packet_queue queue;
     pcap_t* pcap;
     struct {
-        bool running;
+        volatile bool running;
         pthread_t producer;
         pthread_t consumer;
     } threads;
