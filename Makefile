@@ -1,20 +1,19 @@
 NAME		:= psniff
 
-CC		:= gcc
-DEGBUG		:= -g3
-CFLAGS		:= -Wall -Wextra -Werror
+CC			:= gcc
+CFLAGS		:= -Wall -Wextra -Werror -g3
 LDFLAGS		:= -lpthread -lpcap
 
-INCLUDE		:= psniff.h
+INCLUDE		:= psniff.h ps_queue.h ps_threads.h
 INCLUDES	:= $(addprefix include/, $(INCLUDE))
 
-SRC		:= main.c
+SRC		:= main.c ps_queue.c ps_threads.c
 SRCS		:= $(addprefix src/, $(SRC))
 
 all: $(NAME)
 
 $(NAME): $(SRCS) $(INCLUDES)
-	$(CC) -o $@ -Iinclude/ $(CFLAGS) $(DEBUG) $^ $(LDFLAGS)
+	$(CC) -o $@ -Iinclude/ $(CFLAGS) $^ $(LDFLAGS)
 
 fclean:
 	rm -rf $(NAME)
