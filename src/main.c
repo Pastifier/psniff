@@ -9,7 +9,11 @@ int main(int argc, char *argv[]) {
 
 		ps_queue_init(&cxt.queue);
 
-		ps_threads_init(&cxt);
+		if (!ps_threads_init(&cxt)) {
+			fprintf(stderr, "Failed to initialize threads\n");
+			ps_queue_destroy(&cxt.queue);
+			return 1;
+		}
 		ps_threads_join(&cxt);
 
 		// Cleanup
