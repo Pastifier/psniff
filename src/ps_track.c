@@ -56,7 +56,7 @@ static int is_same_connection(const t_tcp_conn *conn,
     return 0;
 }
 
-void print_connection_summary(t_context *ctx, int conn_idx) {
+void print_connection_summary(t_context *ctx, int conn_idx) { // DECISION: Might be static
     if (conn_idx < 0 || conn_idx >= _PS_MAX_CONN) { // Shouldn't happen if logic holds up.
         return;
     }

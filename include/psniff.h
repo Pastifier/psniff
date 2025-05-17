@@ -48,4 +48,8 @@ typedef struct s_context {
     volatile bool running;
 } t_context;
 
+/* ----- Prototypes ------ */
+int find_or_create_connection(t_context *ctx, t_parsed_packet *parsed);
+void update_connection(t_context *ctx, int conn_idx, t_parsed_packet *parsed);
+
 #endif // !PSNIFF_H
