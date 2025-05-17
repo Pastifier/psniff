@@ -1,3 +1,6 @@
+
+// TODO: might need function that periodically checks for dormant "connections" that weren never closed
+
 #include "psniff.h"
 
 /* ----- TCP Flag constants ----- */
