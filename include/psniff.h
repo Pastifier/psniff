@@ -4,6 +4,7 @@
 /* ----- Includes ------ */
 # include <pcap.h>
 # include <stdbool.h>
+# include <stdatomic.h> // For _Atomic, __atomic_store_n()
 # include "ps_queue.h"
 # include "ps_threads.h"
 
@@ -45,7 +46,7 @@ typedef struct s_context {
 
     t_tcp_conn *connections;
 
-    volatile bool running;
+    volatile _Atomic bool running;
 } t_context;
 
 /* ----- Prototypes ------ */
