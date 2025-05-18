@@ -26,3 +26,4 @@ You need to write a C program that compiles using Makefile and runs on linux (po
 ## Helpful resources:
 - (Thread-safety with cond. vars)[https://stackoverflow.com/questions/4062126/can-2-pthread-condition-variables-share-the-same-mutex]
 - (reference for ethhdr struct)[https://docs.huihoo.com/doxygen/linux/kernel/3.7/structethhdr.html]
+- (reference for iphdr struct)[https://stackoverflow.com/questions/42840636/difference-between-struct-ip-and-struct-iphdr]
