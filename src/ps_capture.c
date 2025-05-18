@@ -54,6 +54,8 @@ static int parse_ip(const u_char *bytes, int offset, t_parsed_packet *parsed) {
     parsed->src_ip.s_addr = ip->saddr;
     parsed->dst_ip.s_addr = ip->daddr;
 
+    parsed->protocol = ip->protocol;
+
     int ip_header_len = ip->ihl * sizeof(uint32_t); // ihl stores the number of 32-bit words in the header
 
 
