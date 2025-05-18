@@ -44,6 +44,7 @@ static int parse_ethernet(const u_char *bytes, t_parsed_packet *parsed) {
 
 void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
 (void)bytes;
+
 (void)user;
 (void)h;
 (void)parse_ethernet;
