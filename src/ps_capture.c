@@ -20,6 +20,47 @@ static bool setup_pcap(t_context *cxt) {
     return true;
 }
 
+// typedef void (*pcap_handler)(u_char *user, const struct pcap_pkthdr *h,
+//           const u_char *bytes);
+
+void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
+    t_context* cxt = (t_context*)user;
+    t_parsed_packet parsed = (t_parsed_packet){0};
+
+    parsed.ts = h->ts;
+
+    // The header contains different data at different offsets, so keep that in mind.
+
+    //// 1. Parse ethernet
+    // int offset = parse_ethernet(bytes, &parsed);
+    
+    //// 2. Parse IP
+    // offset = parse_ip(bytes, offset, &parsed);
+
+    //// 3. Parse TCP/UDP
+    if (parsed.protocol == IPPROTO_TCP) {
+        // offset = parse_tcp(bytes, offset, &parsed);
+    } else if (parsed.protocol == IPPROTO_UDP) {
+        // offset = parse_udp(bytes, offset, &parsed);
+    }
+
+    //// 4. Parse HTTP GET/POST if TCP
+    if (parsed.protocol == IPPROTO_TCP) {
+        // parse_http(bytes, offset, &parsed);
+    }
+
+    //// 5. Track connection
+    // int conn_index = find_or_create_connection(cxt, &parsed);
+    // if (conn_index >= 0) {
+    //     update_connection(cxt, conn_index, &parsed);
+    // }
+
+    //// 6. Add packet to queue
+    // if (!ps_queue_enqueue(&cxt->queue, &parsed)) {
+    //     return;
+    // }
+}
+
 void *ps_producer_routine(void *arg) {
 (void)arg;
     t_context* cxt = (t_context*)arg;
