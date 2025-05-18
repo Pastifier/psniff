@@ -1,4 +1,10 @@
 #include "psniff.h"
+#include <netinet/if_ether.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+#include <arpa/inet.h>
+#include <string.h>
 
 
 static bool setup_pcap(t_context *cxt) {
@@ -20,14 +26,31 @@ static bool setup_pcap(t_context *cxt) {
     return true;
 }
 
+static int parse_ethernet(const u_char *bytes, t_parsed_packet *parsed) {
+    const struct ethhdr *eth = (const struct ethhdr *)bytes;
+
+    memcpy(parsed->src_mac, eth, 6);
+    memcpy(parsed->dst_mac, eth + (sizeof(uint8_t) * 6), 6);
+
+    if (ntohs(eth->h_proto) != ETH_P_IP) {
+        return -1;
+    }
+
+    return sizeof(struct ethhdr);
+}
+
 // typedef void (*pcap_handler)(u_char *user, const struct pcap_pkthdr *h,
 //           const u_char *bytes);
 
 void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
-    t_context* cxt = (t_context*)user;
-    t_parsed_packet parsed = (t_parsed_packet){0};
+(void)bytes;
+(void)user;
+(void)h;
+(void)parse_ethernet;
+    // t_context* cxt = (t_context*)user;
+    // t_parsed_packet parsed = (t_parsed_packet){0};
 
-    parsed.ts = h->ts;
+    // parsed.ts = h->ts;
 
     // The header contains different data at different offsets, so keep that in mind.
 
@@ -38,16 +61,16 @@ void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *byt
     // offset = parse_ip(bytes, offset, &parsed);
 
     //// 3. Parse TCP/UDP
-    if (parsed.protocol == IPPROTO_TCP) {
-        // offset = parse_tcp(bytes, offset, &parsed);
-    } else if (parsed.protocol == IPPROTO_UDP) {
-        // offset = parse_udp(bytes, offset, &parsed);
-    }
+    // if (parsed.protocol == IPPROTO_TCP) {
+    //     // offset = parse_tcp(bytes, offset, &parsed);
+    // } else if (parsed.protocol == IPPROTO_UDP) {
+    //     // offset = parse_udp(bytes, offset, &parsed);
+    // }
 
     //// 4. Parse HTTP GET/POST if TCP
-    if (parsed.protocol == IPPROTO_TCP) {
-        // parse_http(bytes, offset, &parsed);
-    }
+    // if (parsed.protocol == IPPROTO_TCP) {
+    //     // parse_http(bytes, offset, &parsed);
+    // }
 
     //// 5. Track connection
     // int conn_index = find_or_create_connection(cxt, &parsed);
