@@ -39,6 +39,27 @@ static int parse_ethernet(const u_char *bytes, t_parsed_packet *parsed) {
     return sizeof(struct ethhdr);
 }
 
+static int parse_ip(const u_char *bytes, int offset, t_parsed_packet *parsed) {
+    const struct iphdr *ip = (const struct iphdr *)(bytes + offset);
+
+/*
+    typedef in_addr_t uint32_t;
+    struct in_addr {
+        in_addr_t s_addr;
+    }
+    
+    It seems as though the definition of the in_addr struct is there to make 
+    the code more portable.
+*/
+    parsed->src_ip.s_addr = ip->saddr;
+    parsed->dst_ip.s_addr = ip->daddr;
+
+    int ip_header_len = ip->ihl * sizeof(uint32_t); // ihl stores the number of 32-bit words in the header
+
+
+    return offset + ip_header_len;
+}
+
 // typedef void (*pcap_handler)(u_char *user, const struct pcap_pkthdr *h,
 //           const u_char *bytes);
 
