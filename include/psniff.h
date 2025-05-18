@@ -23,6 +23,8 @@
 
 /* ----- Typedefs & Structs ------ */
 
+typedef uint8_t u_char;
+
 enum e_direction {
     FORWARD = 1,
     REVERSE
