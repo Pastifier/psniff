@@ -108,8 +108,8 @@ static bool setup_pcap(t_context *cxt) {
 static int parse_ethernet(const u_char *bytes, t_parsed_packet *parsed) {
     const struct ethhdr *eth = (const struct ethhdr *)bytes;
 
-    memcpy(parsed->src_mac, eth, 6);
-    memcpy(parsed->dst_mac, eth + (sizeof(uint8_t) * 6), 6);
+    memcpy(parsed->src_mac, eth->h_source, 6);
+    memcpy(parsed->dst_mac, eth->h_dest, 6);
 
     if (ntohs(eth->h_proto) != ETH_P_IP) {
         return -1;
@@ -173,10 +173,12 @@ static int parse_http(const u_char *bytes, int offset, int total_len, t_parsed_p
         || offset >= total_len) { // Someone is trying to be sneaky.
         return 0;
     }
+#define MAX_HOST_LEN 256
+#define MAX_USER_AGENT_LEN 512
 
     const char *payload = (const char *)(bytes + offset);
     int payload_len = total_len - offset;
-    if (payload_len < 4) return 0;
+    if (payload_len < 4 || payload_len > MAX_HOST_LEN + MAX_USER_AGENT_LEN) return 0;
 
     if (strncmp(payload, "GET ", 4) != 0
         && strncmp(payload, "POST ", 5) != 0) {
@@ -217,16 +219,19 @@ static int parse_http(const u_char *bytes, int offset, int total_len, t_parsed_p
 void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
     t_context* cxt = (t_context*)user;
     t_parsed_packet parsed = (t_parsed_packet){0};
-
+    time_t current_time;
+    
     parsed.ts = h->ts;
 
     // The header contains different data at different offsets, so keep that in mind.
 
     //// 1. Parse ethernet
     int offset = parse_ethernet(bytes, &parsed);
+    if (offset < 0) return;
     
     //// 2. Parse IP
     offset = parse_ip(bytes, offset, &parsed);
+    if (offset < 0) return;
 
     //// 3. Parse TCP/UDP
     if (parsed.protocol == IPPROTO_TCP) {
@@ -250,9 +255,22 @@ void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *byt
     if (!ps_queue_enqueue(&cxt->queue, &parsed)) {
         return;
     }
+    
+    //// 7. Check if we need to signal the audit thread
+    current_time = time(NULL);
+    if (current_time - cxt->last_audit_time >= _PS_CONNECTION_TIMEOUT) {
+        pthread_mutex_lock(&cxt->conn_mutex);
+        // Update last_audit_time even if we don't actually perform an audit yet
+        // This prevents frequent signaling when there's heavy traffic
+        cxt->last_audit_time = current_time;
+        pthread_cond_signal(&cxt->audit_cond);
+        pthread_mutex_unlock(&cxt->conn_mutex);
+    }
 }
 
 void *ps_producer_routine(void *arg) {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
     t_context* cxt = (t_context*)arg;
 
     printf("[+] Producer thread started\n");
