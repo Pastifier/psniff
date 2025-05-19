@@ -9,9 +9,36 @@
 #define TCP_RST 0x04
 #define TCP_ACK 0x10
 
+// static uint32_t hash_connection(struct in_addr src_ip, struct in_addr dst_ip,
+//         uint16_t src_port, uint16_t dst_port) {
+//     bool is_lower = false; // For bi-directional connections
+
+//     if (ntohl(src_ip.s_addr) < ntohl(dst_ip.s_addr)) {
+//         is_lower = true;
+//     } else if (ntohl(src_ip.s_addr) == ntohl(dst_ip.s_addr)) {
+//         if (src_port < dst_port) {
+//             is_lower = true;
+//         }
+//     }
+
+//     uint32_t hash;
+//     switch (is_lower)
+//     {
+//     case true:
+//         hash = src_ip.s_addr ^ (dst_ip.s_addr << 7) ^ src_port ^ (dst_port << 16);
+//         break;
+    
+//     default:
+//         hash = dst_ip.s_addr ^ (src_ip.s_addr << 7) ^ dst_port ^ (src_port << 16);
+//         break;
+//     }
+
+//     return hash % _PS_MAX_CONN;
+// }
+
 static uint32_t hash_connection(struct in_addr src_ip, struct in_addr dst_ip,
         uint16_t src_port, uint16_t dst_port) {
-    bool is_lower = false; // For bi-directional connections
+    bool is_lower = false;
 
     if (ntohl(src_ip.s_addr) < ntohl(dst_ip.s_addr)) {
         is_lower = true;
@@ -21,17 +48,43 @@ static uint32_t hash_connection(struct in_addr src_ip, struct in_addr dst_ip,
         }
     }
 
-    uint32_t hash;
+    uint32_t a, b, c, d;
+
     switch (is_lower)
     {
     case true:
-        hash = src_ip.s_addr ^ (dst_ip.s_addr << 7) ^ src_port ^ (dst_port << 16);
+        a = src_ip.s_addr;
+        b = dst_ip.s_addr;
+        c = src_port;
+        d = dst_port;
         break;
-    
+
     default:
-        hash = dst_ip.s_addr ^ (src_ip.s_addr << 7) ^ dst_port ^ (src_port << 16);
+        a = dst_ip.s_addr;
+        b = src_ip.s_addr;
+        c = dst_port;
+        d = src_port;
         break;
     }
+
+    // FNV-1a inspired mixing with better bit dispersion
+    uint32_t hash = 2166136261u; // FNV offset basis
+
+    hash = (hash ^ (a & 0xFF)) * 16777619;
+    hash = (hash ^ ((a >> 8) & 0xFF)) * 16777619;
+    hash = (hash ^ ((a >> 16) & 0xFF)) * 16777619;
+    hash = (hash ^ ((a >> 24) & 0xFF)) * 16777619;
+
+    hash = (hash ^ (b & 0xFF)) * 16777619;
+    hash = (hash ^ ((b >> 8) & 0xFF)) * 16777619;
+    hash = (hash ^ ((b >> 16) & 0xFF)) * 16777619;
+    hash = (hash ^ ((b >> 24) & 0xFF)) * 16777619;
+
+    hash = (hash ^ (c & 0xFF)) * 16777619;
+    hash = (hash ^ ((c >> 8) & 0xFF)) * 16777619;
+
+    hash = (hash ^ (d & 0xFF)) * 16777619;
+    hash = (hash ^ ((d >> 8) & 0xFF)) * 16777619;
 
     return hash % _PS_MAX_CONN;
 }
