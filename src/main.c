@@ -20,7 +20,7 @@ void signal_handler(int sig) {
 
 			if (g_cxt->handle) {
 				pcap_breakloop(g_cxt->handle);
-				g_cxt->handle = NULL;
+				// g_cxt->handle = NULL;
 			}
 
 			ps_queue_close(&g_cxt->queue);
