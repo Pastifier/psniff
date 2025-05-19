@@ -219,7 +219,8 @@ static int parse_http(const u_char *bytes, int offset, int total_len, t_parsed_p
 void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
     t_context* cxt = (t_context*)user;
     t_parsed_packet parsed = (t_parsed_packet){0};
-
+    time_t current_time;
+    
     parsed.ts = h->ts;
 
     // The header contains different data at different offsets, so keep that in mind.
@@ -253,6 +254,17 @@ void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *byt
     //// 6. Add packet to queue
     if (!ps_queue_enqueue(&cxt->queue, &parsed)) {
         return;
+    }
+    
+    //// 7. Check if we need to signal the audit thread
+    current_time = time(NULL);
+    if (current_time - cxt->last_audit_time >= _PS_CONNECTION_TIMEOUT) {
+        pthread_mutex_lock(&cxt->conn_mutex);
+        // Update last_audit_time even if we don't actually perform an audit yet
+        // This prevents frequent signaling when there's heavy traffic
+        cxt->last_audit_time = current_time;
+        pthread_cond_signal(&cxt->audit_cond);
+        pthread_mutex_unlock(&cxt->conn_mutex);
     }
 }
 
