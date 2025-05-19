@@ -176,7 +176,7 @@ static int parse_http(const u_char *bytes, int offset, int total_len, t_parsed_p
 
     const char *payload = (const char *)(bytes + offset);
     int payload_len = total_len - offset;
-    if (payload_len < 4) return 0;
+    if (payload_len < 4 || payload_len > 256) return 0;
 
     if (strncmp(payload, "GET ", 4) != 0
         && strncmp(payload, "POST ", 5) != 0) {
