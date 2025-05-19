@@ -16,8 +16,13 @@ static void print_packet_info(FILE *f, const t_parsed_packet *parsed) {
 
     fprintf(f, "MAC %s -> %s", src_mac_str, dst_mac_str);
 
-    fprintf(f, "IP %s -> %s | ", inet_ntoa(parsed->src_ip), inet_ntoa(parsed->dst_ip));
-
+    
+    char src_ip_str[INET_ADDRSTRLEN], dst_ip_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(parsed->src_ip), src_ip_str, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &(parsed->dst_ip), dst_ip_str, INET_ADDRSTRLEN);
+    fprintf(f, "IP %s -> %s | ", src_ip_str, dst_ip_str);
+    // fprintf(f, "IP %s -> %s | ", inet_ntoa(parsed->src_ip), inet_ntoa(parsed->dst_ip)); // Convert Internet number in IN to ASCII representation. The return value
+//                                                                                              is a pointer to an internal array containing the string.
     if (parsed->protocol == IPPROTO_TCP) {
         fprintf(f, "TCP %u -> %u", parsed->src_port, parsed->dst_port);
     } else if (parsed->protocol == IPPROTO_UDP) {
@@ -44,17 +49,22 @@ static void print_packet_info(FILE *f, const t_parsed_packet *parsed) {
 void *ps_consumer_routine(void *arg) {
     t_context* cxt = (t_context*)arg;
     t_parsed_packet parsed; // No need to initialize here, we're just dequeuing
+    int counter = 0;
 
     printf("[+] Consumer thread started\n");
 
     while (__atomic_load_n(&cxt->running, __ATOMIC_SEQ_CST)) {
         if (ps_queue_dequeue(&cxt->queue, &parsed)) {
             print_packet_info(cxt->output_file, &parsed);
+
+            ++counter;
         } else {
             if (!__atomic_load_n(&cxt->running, __ATOMIC_SEQ_CST)) break;
 
             usleep(10000);
         }
     }
+
+    printf("[*] Consumer thread finished (%d packets)\n", counter);
     return NULL;
 }
