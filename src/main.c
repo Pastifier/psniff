@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 		struct sigaction sa = (struct sigaction){0};
 		sa.sa_handler = signal_handler;
 		sigemptyset(&sa.sa_mask);
-		sa.sa_flags = SA_RESTART;
+		sa.sa_flags = 0;
 		if (sigaction(SIGINT, &sa, NULL) < 0 || sigaction(SIGTERM, &sa, NULL) < 0) {
 			fprintf(stderr, "[!] Failed to set signal handler\n");
 			return 2;
