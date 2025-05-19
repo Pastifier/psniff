@@ -161,6 +161,53 @@ static int parse_udp(const u_char *bytes, int offset, t_parsed_packet *parsed) {
     return offset + sizeof(struct udphdr);
 }
 
+static void parse_http(const u_char *bytes, int offset, int total_len, t_parsed_packet *parsed) {
+    // if (parsed->protocol != IPPROTO_TCP) { // Already checked for outside
+    //     return 0;
+    // }
+
+    if ((parsed->src_port != 80 && parsed->dst_port != 80) // HTTP:80, HTTPS:443
+        || offset >= total_len) { // Someone is trying to be sneaky.
+        return 0;
+    }
+
+    const char *payload = (const char *)(bytes + offset);
+    int payload_len = total_len - offset;
+    if (payload_len < 4) return 0;
+
+    if (strncmp(payload, "GET ", 4) != 0
+        && strncmp(payload, "POST ", 5) != 0) {
+        return 0;
+    }
+
+    parsed->has_http = true;
+
+    const char *host = strstr(payload, "Host: ");
+    if (host) {
+        host += 6;
+        int i = 0;
+        while (host[i] && host[i] != '\r' && host[i] != '\n'
+            && i < sizeof(parsed->host) - 1) {
+            parsed->host[i] = host[i];
+            ++i;
+        }
+        parsed->host[i] = '\0'; // Not necessary cuz I'm zeroing the struct, but eh.
+    }
+
+    const char *user_agent = strstr(payload, "User-Agent: ");
+    if (user_agent) {
+        user_agent += 12;
+        int i = 0;
+        while (user_agent[i] && user_agent[i] != '\r' && user_agent[i] != '\n'
+            && i < sizeof(parsed->user_agent) - 1) {
+            parsed->user_agent[i] = user_agent[i];
+            ++i;
+        }
+        parsed->user_agent[i] = '\0';
+    }
+    return 1;
+}
+
 // typedef void (*pcap_handler)(u_char *user, const struct pcap_pkthdr *h,
 //           const u_char *bytes);
 
