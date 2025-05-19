@@ -3,8 +3,10 @@
 bool ps_threads_init(t_context* cxt) {
     if (pthread_create(&cxt->producer_tid, NULL, ps_producer_routine, cxt))
         return false;
-    if (pthread_create(&cxt->consumer_tid, NULL, ps_consumer_routine, cxt))
+    if (pthread_create(&cxt->consumer_tid, NULL, ps_consumer_routine, cxt)) {
+        pthread_cancel(cxt->producer_tid);
         return false;
+    }
     return true;
 }
 

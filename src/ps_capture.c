@@ -255,6 +255,8 @@ void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *byt
 }
 
 void *ps_producer_routine(void *arg) {
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+
     t_context* cxt = (t_context*)arg;
 
     printf("[+] Producer thread started\n");
