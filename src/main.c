@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <signal.h>
 #include <string.h>
+#include <stdatomic.h>
 
 t_context* g_cxt = NULL;
 
 void signal_handler(int sig) {
 	if (sig == SIGINT) {
-		g_cxt->running = false;
+		__atomic_store_n(&g_cxt->running, false, __ATOMIC_SEQ_CST);
 		ps_queue_close(&g_cxt->queue);
 		// cleanup(g_cxt); // Remember: dynamically allocated: -- 
 		// DECISION: cleanup here or after threads join in main?
