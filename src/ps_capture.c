@@ -7,6 +7,8 @@
 #define __DEFAULT_SOURCE 1
 #include <netinet/tcp.h>
 
+#define HTTP_PORT 80
+
 /*
 typedef	uint32_t tcp_seq;
 
@@ -161,12 +163,13 @@ static int parse_udp(const u_char *bytes, int offset, t_parsed_packet *parsed) {
     return offset + sizeof(struct udphdr);
 }
 
-static void parse_http(const u_char *bytes, int offset, int total_len, t_parsed_packet *parsed) {
+static int parse_http(const u_char *bytes, int offset, int total_len, t_parsed_packet *parsed) {
+    // REMEMBER: Perhaps make string handling terminate at caplen.
     // if (parsed->protocol != IPPROTO_TCP) { // Already checked for outside
     //     return 0;
     // }
 
-    if ((parsed->src_port != 80 && parsed->dst_port != 80) // HTTP:80, HTTPS:443
+    if ((parsed->src_port != HTTP_PORT && parsed->dst_port != HTTP_PORT) // HTTP:80, HTTPS:443
         || offset >= total_len) { // Someone is trying to be sneaky.
         return 0;
     }
@@ -185,7 +188,7 @@ static void parse_http(const u_char *bytes, int offset, int total_len, t_parsed_
     const char *host = strstr(payload, "Host: ");
     if (host) {
         host += 6;
-        int i = 0;
+        size_t i = 0;
         while (host[i] && host[i] != '\r' && host[i] != '\n'
             && i < sizeof(parsed->host) - 1) {
             parsed->host[i] = host[i];
@@ -197,7 +200,7 @@ static void parse_http(const u_char *bytes, int offset, int total_len, t_parsed_
     const char *user_agent = strstr(payload, "User-Agent: ");
     if (user_agent) {
         user_agent += 12;
-        int i = 0;
+        size_t i = 0;
         while (user_agent[i] && user_agent[i] != '\r' && user_agent[i] != '\n'
             && i < sizeof(parsed->user_agent) - 1) {
             parsed->user_agent[i] = user_agent[i];
@@ -212,50 +215,44 @@ static void parse_http(const u_char *bytes, int offset, int total_len, t_parsed_
 //           const u_char *bytes);
 
 void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes) {
-(void)bytes;
+    t_context* cxt = (t_context*)user;
+    t_parsed_packet parsed = (t_parsed_packet){0};
 
-(void)user;
-(void)h;
-(void)parse_ethernet;
-    // t_context* cxt = (t_context*)user;
-    // t_parsed_packet parsed = (t_parsed_packet){0};
-
-    // parsed.ts = h->ts;
+    parsed.ts = h->ts;
 
     // The header contains different data at different offsets, so keep that in mind.
 
     //// 1. Parse ethernet
-    // int offset = parse_ethernet(bytes, &parsed);
+    int offset = parse_ethernet(bytes, &parsed);
     
     //// 2. Parse IP
-    // offset = parse_ip(bytes, offset, &parsed);
+    offset = parse_ip(bytes, offset, &parsed);
 
     //// 3. Parse TCP/UDP
-    // if (parsed.protocol == IPPROTO_TCP) {
-    //     // offset = parse_tcp(bytes, offset, &parsed);
-    // } else if (parsed.protocol == IPPROTO_UDP) {
-    //     // offset = parse_udp(bytes, offset, &parsed);
-    // }
+    if (parsed.protocol == IPPROTO_TCP) {
+        offset = parse_tcp(bytes, offset, &parsed);
+    } else if (parsed.protocol == IPPROTO_UDP) {
+        offset = parse_udp(bytes, offset, &parsed);
+    }
 
     //// 4. Parse HTTP GET/POST if TCP
-    // if (parsed.protocol == IPPROTO_TCP) {
-    //     // parse_http(bytes, offset, &parsed);
-    // }
+    if (parsed.protocol == IPPROTO_TCP) {
+        parse_http(bytes, offset, h->caplen, &parsed);
+    }
 
     //// 5. Track connection
-    // int conn_index = find_or_create_connection(cxt, &parsed);
-    // if (conn_index >= 0) {
-    //     update_connection(cxt, conn_index, &parsed);
-    // }
+    int conn_index = find_or_create_connection(cxt, &parsed);
+    if (conn_index >= 0) {
+        update_connection(cxt, conn_index, &parsed);
+    }
 
     //// 6. Add packet to queue
-    // if (!ps_queue_enqueue(&cxt->queue, &parsed)) {
-    //     return;
-    // }
+    if (!ps_queue_enqueue(&cxt->queue, &parsed)) {
+        return;
+    }
 }
 
 void *ps_producer_routine(void *arg) {
-(void)arg;
     t_context* cxt = (t_context*)arg;
 
     printf("[+] Producer thread started\n");
@@ -267,21 +264,21 @@ void *ps_producer_routine(void *arg) {
     }
 
     //// 2: Start sniffing
-    // int res = pcap_loop(cxt->handle, -1, packet_handler, (u_char*)cxt);
+    int res = pcap_loop(cxt->handle, -1, packet_handler, (u_char*)cxt);
 
     //// 3: Check for errors or interruption
-    // switch (res)
-    // {
-    // case -1:
-    //     fprintf(stderr, "pcap_loop error: %s\n", pcap_geterr(cxt->handle));
-    //     break;
-    // case -2:
-    //     fprintf(stderr, "pcap_loop interrupted\n");
-    //     break;
-    // default:
-    //     printf("pcap_loop exited with code %d\n", res);
-    //     break;
-    // }
+    switch (res)
+    {
+    case -1:
+        fprintf(stderr, "pcap_loop error: %s\n", pcap_geterr(cxt->handle));
+        break;
+    case -2:
+        fprintf(stderr, "pcap_loop interrupted\n");
+        break;
+    default:
+        printf("pcap_loop exited with code %d\n", res);
+        break;
+    }
 
     return NULL;
 }
