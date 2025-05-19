@@ -9,8 +9,8 @@ bool ps_threads_init(t_context* cxt) {
 }
 
 void ps_threads_join(t_context* cxt) {
-    pthread_join(cxt->producer_tid, NULL);
     ps_queue_close(&cxt->queue);
+    pthread_join(cxt->producer_tid, NULL);
     pthread_join(cxt->consumer_tid, NULL);
 }
 
