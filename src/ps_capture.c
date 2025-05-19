@@ -278,6 +278,8 @@ void *ps_producer_routine(void *arg) {
     //// 1: Initialize pcap
     if (!setup_pcap(cxt)) {
         __atomic_store_n(&cxt->running, false, __ATOMIC_SEQ_CST); // REMEMBER
+        // Valgrind annotation - signal that running flag has changed
+        ANNOTATE_HAPPENS_BEFORE(&cxt->running);
         return NULL;
     }
 

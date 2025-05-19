@@ -307,6 +307,8 @@ void *ps_connection_audit_routine(void *arg) {
     printf("[+] Connection audit thread started\n");
     
     while (__atomic_load_n(&ctx->running, __ATOMIC_SEQ_CST)) {
+        // Valgrind annotation - audit thread observes running flag
+        ANNOTATE_HAPPENS_AFTER(&ctx->running);
         // Wait for signal from producer thread or timeout
         pthread_mutex_lock(&ctx->conn_mutex);
         
@@ -316,11 +318,15 @@ void *ps_connection_audit_routine(void *arg) {
         
         // Wait on condition variable with timeout
         if (__atomic_load_n(&ctx->running, __ATOMIC_SEQ_CST)) {
+            // Valgrind annotation - audit thread observes running flag
+            ANNOTATE_HAPPENS_AFTER(&ctx->running);
             pthread_cond_timedwait(&ctx->audit_cond, &ctx->conn_mutex, &ts);
         }
         
         // Don't perform audit if we're shutting down and just got signaled to exit
         if (!__atomic_load_n(&ctx->running, __ATOMIC_SEQ_CST)) {
+            // Valgrind annotation - audit thread observes running flag
+            ANNOTATE_HAPPENS_AFTER(&ctx->running);
             pthread_mutex_unlock(&ctx->conn_mutex);
             break;
         }
