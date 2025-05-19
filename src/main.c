@@ -5,6 +5,17 @@
 #include <stdatomic.h>
 #include <unistd.h>
 
+// ASCII color codes
+#define RED "\033[1;31m"
+#define LIGHTRED "\033[1;91m"
+#define PURPLE "\033[1;35m"
+#define GREEN "\033[1;32m"
+#define YELLOW "\033[1;33m"
+#define BLUE "\033[1;34m"
+#define MAGENTA "\033[1;35m"
+#define CYAN "\033[1;36m"
+#define RESET "\033[0m"
+
 t_context* g_cxt = NULL;
 sig_atomic_t g_termination_requested = false;
 
@@ -34,11 +45,50 @@ void signal_handler(int sig) {
 	}
 }
 
+static void print_banner(void) {
+	// Clearer banner with red-to-purple gradient
+	fprintf(stderr, RED);
+	fprintf(stderr, "  _____   _____         _  __  __  \n");
+	fprintf(stderr, LIGHTRED);
+	fprintf(stderr, " |  __ \\ / ____|       (_)/ _|/ _| \n");
+	fprintf(stderr, MAGENTA);
+	fprintf(stderr, " | |__) | (___  _ __   _| |_| |_  \n");
+	fprintf(stderr, PURPLE);
+	fprintf(stderr, " |  ___/ \\___ \\| '_ \\ | |  _|  _| \n");
+	fprintf(stderr, MAGENTA);
+	fprintf(stderr, " | |     ____) | | | | | | | | |   \n");
+	fprintf(stderr, PURPLE);
+	fprintf(stderr, " |_|    |_____/|_| |_|_|_| |_|    \n");
+	fprintf(stderr, RESET);
+	fprintf(stderr, "\n");
+	fprintf(stderr, CYAN "==================================================" RESET "\n");
+	fprintf(stderr, "A high-performance network packet sniffer and analyzer\n");
+	fprintf(stderr, "Featuring multi-threaded design with TCP connection tracking\n");
+	fprintf(stderr, CYAN "==================================================" RESET "\n\n");
+}
+
+static void print_usage(const char* program_name) {
+	fprintf(stderr, YELLOW "USAGE:" RESET "\n");
+	fprintf(stderr, "  %s <interface|pcapfile> <mode> <output_file>\n\n", program_name);
+	
+	fprintf(stderr, YELLOW "ARGUMENTS:" RESET "\n");
+	fprintf(stderr, "  interface    - Network interface (e.g., eth0, wlan0)" GREEN " [live mode]" RESET "\n");
+	fprintf(stderr, "  pcapfile     - Path to PCAP file to analyze" BLUE " [file mode]" RESET "\n");
+	fprintf(stderr, "  mode         - Either \"live\" (for real-time capture) or \"file\" (for PCAP analysis)\n");
+	fprintf(stderr, "  output_file  - File to write packet information to\n\n");
+	
+	fprintf(stderr, YELLOW "EXAMPLES:" RESET "\n");
+	fprintf(stderr, "  %s eth0 live capture.log     " GREEN "# Capture from eth0 interface" RESET "\n", program_name);
+	fprintf(stderr, "  %s traffic.pcap file analysis.log     " BLUE "# Analyze traffic.pcap file" RESET "\n", program_name);
+}
+
 static bool init_context(t_context* cxt, int argc, char* argv[]) {
-	if (argc != 4) {
-		fprintf(stderr, "Usage: %s <interface|pcapfile> <\"live\"|\"file\"> <output_file>\n", argv[0]);
-		return false;
-	}
+(void)argc;
+	// if (argc != 4) {
+	// 	print_banner();
+	// 	print_usage(argv[0]);
+	// 	return false;
+	// }
 
 	*cxt = (t_context){0};
 
@@ -174,5 +224,7 @@ int main(int argc, char *argv[]) {
 		cleanup(&cxt);
 		return 0;
 	}
+	print_banner();
+	print_usage(argv[0]);
 	return 1;
 }
