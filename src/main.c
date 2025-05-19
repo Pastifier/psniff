@@ -7,7 +7,7 @@
 t_context* g_cxt = NULL;
 
 void signal_handler(int sig) {
-	if (sig == SIGINT) {
+	if (sig == SIGINT || sig == SIGTERM) {
 		__atomic_store_n(&g_cxt->running, false, __ATOMIC_SEQ_CST);
 		ps_queue_close(&g_cxt->queue);
 		// cleanup(g_cxt); // Remember: dynamically allocated: -- 
