@@ -61,6 +61,7 @@ typedef struct s_context {
 } t_context;
 
 /* ----- Prototypes ------ */
+void print_connection_summary(t_context *ctx, int conn_idx);
 int find_or_create_connection(t_context *ctx, t_parsed_packet *parsed);
 void update_connection(t_context *ctx, int conn_idx, t_parsed_packet *parsed);
 
