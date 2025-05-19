@@ -14,6 +14,7 @@
 # include <stdlib.h>
 # include "ps_queue.h"
 # include "ps_threads.h"
+# include "ps_valgrind.h"
 
 /* ----- Defines ------ */
 

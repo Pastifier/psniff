@@ -16,6 +16,8 @@ void signal_handler(int sig) {
 			printf("\n[*] Terminating...\n");
 
 			__atomic_store_n(&g_cxt->running, false, __ATOMIC_SEQ_CST);
+			// Valgrind annotation - signal to other threads that running has been changed
+			ANNOTATE_HAPPENS_BEFORE(&g_cxt->running);
 			ps_queue_close(&g_cxt->queue);
 
 			if (g_cxt->handle) {
@@ -52,12 +54,14 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 
 	cxt->connections = calloc(_PS_MAX_CONN, sizeof(t_tcp_conn));
 	if (!cxt->connections) {
-		fprintf(stderr, "[!] Failed to allocate memory for connections\n");
-		fclose(cxt->output_file);
-		ps_queue_destroy(&cxt->queue);
+		fprintf(stderr, "[!] Failed to allocate connections array\n");
 		return false;
 	}
-	// pthread_mutex_init(&cxt->conn_mutex, NULL); // We'll see.
+
+	// Setup the atomic flag for threads
+	__atomic_store_n(&cxt->running, true, __ATOMIC_SEQ_CST);
+	// Valgrind annotation - initialize the happens-before relation for running flag
+	ANNOTATE_HAPPENS_BEFORE(&cxt->running);
 
 	char errbuf[PCAP_ERRBUF_SIZE];
 	if (strcmp(mode, "live") == 0) {
@@ -86,8 +90,6 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 		pcap_close(cxt->handle);
 		return false;
 	}
-
-	__atomic_store_n(&cxt->running, true, __ATOMIC_SEQ_CST);
 
 	return true;
 }
@@ -150,11 +152,15 @@ int main(int argc, char *argv[]) {
 		}
 
 		while (!g_termination_requested && __atomic_load_n(&cxt.running, __ATOMIC_SEQ_CST)) {
+			// Valgrind annotation - main thread observes running flag
+			ANNOTATE_HAPPENS_AFTER(&cxt.running);
 			usleep(100000);
 		}
 
 		if (g_termination_requested) {
 			__atomic_store_n(&cxt.running, false, __ATOMIC_SEQ_CST);
+			// Valgrind annotation - signal that running has been changed
+			ANNOTATE_HAPPENS_BEFORE(&cxt.running);
 
 			if (cxt.handle) {
 				pcap_breakloop(cxt.handle);
