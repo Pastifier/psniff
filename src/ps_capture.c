@@ -152,6 +152,15 @@ static int parse_tcp(const u_char *bytes, int offset, t_parsed_packet *parsed) {
     return offset + tcp_header_len;
 }
 
+static int parse_udp(const u_char *bytes, int offset, t_parsed_packet *parsed) {
+    const struct udphdr *udp = (const struct udphdr *)(bytes + offset);
+
+    parsed->src_port = ntohs(udp->uh_sport);
+    parsed->dst_port = ntohs(udp->uh_dport);
+
+    return offset + sizeof(struct udphdr);
+}
+
 // typedef void (*pcap_handler)(u_char *user, const struct pcap_pkthdr *h,
 //           const u_char *bytes);
 
