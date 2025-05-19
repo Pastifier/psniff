@@ -98,8 +98,8 @@ int find_or_create_connection(t_context *ctx, t_parsed_packet *parsed) {
     
     // pthread_mutex_lock(&ctx->conn_mutex);
     
-    for (uint32_t i = hash_idx; i < hash_idx + _PS_MAX_CONN/10; i++) { // DECISION: premature optimisation. Play with the percentage probed as you test.
-        int idx = i % _PS_MAX_CONN;
+    for (uint32_t i = hash_idx; i < hash_idx /* + _PS_MAX_CONN/10 */; i++) { // DECISION: premature optimisation. Play with the percentage probed as you test.
+        int idx = i /* % _PS_MAX_CONN */ ;
         
         int match = is_same_connection(&ctx->connections[idx], 
                                        parsed->src_ip, parsed->dst_ip,
