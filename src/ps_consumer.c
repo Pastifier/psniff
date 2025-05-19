@@ -12,9 +12,9 @@ static void print_packet_info(FILE *f, const t_parsed_packet *parsed) {
             parsed->dst_mac[0], parsed->dst_mac[1], parsed->dst_mac[2],
             parsed->dst_mac[3], parsed->dst_mac[4], parsed->dst_mac[5]);
     
-    fprintf(f, "%ld.%06ld", (long)parsed->ts.tv_sec, (long)parsed->ts.tv_usec);
+    fprintf(f, "[%ld.%06ld] ", (long)parsed->ts.tv_sec, (long)parsed->ts.tv_usec);
 
-    fprintf(f, "MAC %s -> %s", src_mac_str, dst_mac_str);
+    fprintf(f, "MAC %s -> %s | ", src_mac_str, dst_mac_str);
 
     
     char src_ip_str[INET_ADDRSTRLEN], dst_ip_str[INET_ADDRSTRLEN];
