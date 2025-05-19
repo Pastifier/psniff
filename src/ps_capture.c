@@ -173,10 +173,12 @@ static int parse_http(const u_char *bytes, int offset, int total_len, t_parsed_p
         || offset >= total_len) { // Someone is trying to be sneaky.
         return 0;
     }
+#define MAX_HOST_LEN 256
+#define MAX_USER_AGENT_LEN 512
 
     const char *payload = (const char *)(bytes + offset);
     int payload_len = total_len - offset;
-    if (payload_len < 4 || payload_len > 256) return 0;
+    if (payload_len < 4 || payload_len > MAX_HOST_LEN + MAX_USER_AGENT_LEN) return 0;
 
     if (strncmp(payload, "GET ", 4) != 0
         && strncmp(payload, "POST ", 5) != 0) {
