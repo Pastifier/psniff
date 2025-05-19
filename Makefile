@@ -2,7 +2,7 @@ NAME		:= psniff
 
 CC			:= gcc
 CFLAGS		:= -Wall -Wextra -Werror -g3
-LDFLAGS		:= -lpthread -lpcap
+LDFLAGS		:= -lpthread -lpcap -lm
 
 INCLUDE		:= psniff.h ps_queue.h ps_threads.h
 INCLUDES	:= $(addprefix include/, $(INCLUDE))
