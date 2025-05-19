@@ -2,7 +2,7 @@ NAME		:= psniff
 
 CC			:= gcc
 CFLAGS		:= -Wall -Wextra -Werror -g3
-LDFLAGS		:= -lpthread -lpcap -lm
+LDFLAGS		:= -lpthread -lpcap -lm #-fsanitize=address,undefined
 
 # Add Valgrind annotations support
 VALGRIND		?= 0

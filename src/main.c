@@ -46,19 +46,17 @@ void signal_handler(int sig) {
 }
 
 static void print_banner(void) {
-	// Clearer banner with red-to-purple gradient
+	// First banner with red-to-purple gradient
 	fprintf(stderr, RED);
-	fprintf(stderr, "  _____   _____         _  __  __  \n");
+	fprintf(stderr, "   ____  ____         _ ______ ______ \n");
 	fprintf(stderr, LIGHTRED);
-	fprintf(stderr, " |  __ \\ / ____|       (_)/ _|/ _| \n");
+	fprintf(stderr, "  / __ \\/ __ \\___  __(_) __/ // __/ \n");
 	fprintf(stderr, MAGENTA);
-	fprintf(stderr, " | |__) | (___  _ __   _| |_| |_  \n");
+	fprintf(stderr, " / /_/ / / / / _ \\/ / / /_/ // /_ \n");
 	fprintf(stderr, PURPLE);
-	fprintf(stderr, " |  ___/ \\___ \\| '_ \\ | |  _|  _| \n");
+	fprintf(stderr, "/ ____/ /_/ /  __/ / / __/ // __/ \n");
 	fprintf(stderr, MAGENTA);
-	fprintf(stderr, " | |     ____) | | | | | | | | |   \n");
-	fprintf(stderr, PURPLE);
-	fprintf(stderr, " |_|    |_____/|_| |_|_|_| |_|    \n");
+	fprintf(stderr, "\\____/\\____/\\___/_/_/_/ /_//_/ \n");
 	fprintf(stderr, RESET);
 	fprintf(stderr, "\n");
 	fprintf(stderr, CYAN "==================================================" RESET "\n");
@@ -137,7 +135,6 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 		free(cxt->connections);
 		fclose(cxt->output_file);
 		ps_queue_destroy(&cxt->queue);
-		pcap_close(cxt->handle);
 		return false;
 	}
 
