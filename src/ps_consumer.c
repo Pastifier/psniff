@@ -39,7 +39,7 @@ static void print_packet_info(FILE *f, const t_parsed_packet *parsed) {
         }
 
         if (parsed->user_agent[0]) {
-            fprintf(f, "%sUser-Agent: %s", (parsed->host[0] ? " , " : ""), parsed->user_agent);
+            fprintf(f, "%sUser-Agent: %s", (parsed->host[0] ? " , " : " "), parsed->user_agent);
         }
     }
 
