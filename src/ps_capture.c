@@ -224,9 +224,11 @@ void packet_handler(u_char *user, const struct pcap_pkthdr *h, const u_char *byt
 
     //// 1. Parse ethernet
     int offset = parse_ethernet(bytes, &parsed);
+    if (offset < 0) return;
     
     //// 2. Parse IP
     offset = parse_ip(bytes, offset, &parsed);
+    if (offset < 0) return;
 
     //// 3. Parse TCP/UDP
     if (parsed.protocol == IPPROTO_TCP) {
