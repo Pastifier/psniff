@@ -44,6 +44,7 @@ static void print_packet_info(FILE *f, const t_parsed_packet *parsed) {
     }
 
     fprintf(f, "\n");
+    fflush(f);
 }
 
 void *ps_consumer_routine(void *arg) {
