@@ -64,6 +64,17 @@ help:
 	@echo "  fclean   : Remove object files and executable"
 	@echo "  re       : Rebuild everything"
 	@echo "  valgrind : Build with Valgrind annotations enabled"
+sanitize: CFLAGS += -fsanitize=address,undefined -O0 -fno-optimize-sibling-calls -fno-omit-frame-pointer
+sanitize: re
+
+fuzz: CC = hfuzz-cc -O3 -flto -fno-stack-protector -fomit-frame-pointer -finline-functions -fno-common -funroll-loops #-funroll-loops #-finline-limit=40000
+fuzz: CFLAGS += -fsanitize=address -fsanitize-coverage=trace-pc-guard
+fuzz: re
+fuzz: 
+	mv psniff fuzzdir/psniff
+
+fuzzstart: fuzz
+	cd fuzzdir; honggfuzz -i ../pcap_samples/ -o findings/ --crashdir crashes/ -- ./psniff ___FILE___ file fuzz.log
 
 # Declare phony targets
-.PHONY: all clean fclean re valgrind help $(OBJ_DIR)
+.PHONY: all clean fclean re valgrind help sanitize $(OBJ_DIR)

@@ -92,6 +92,7 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 
 	char* interface = argv[1];
 	char* mode = argv[2];
+
 	cxt->output_file = fopen(argv[3], "w");
 	if (!cxt->output_file) {
 		fprintf(stderr, "[!] Failed to open output file %s\n", argv[3]);
@@ -114,14 +115,14 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 	char errbuf[PCAP_ERRBUF_SIZE];
 	if (strcmp(mode, "live") == 0) {
 		cxt->handle = pcap_open_live(interface, _PS_PACKET_CAPLEN, 1, 1000, errbuf);
-		if (!cxt->handle) {
+		if (!cxt->handle) { ///// REMEMBER
 			fprintf(stderr, "pcap_create error: %s\n", errbuf);
 			free(cxt->connections);
 			fclose(cxt->output_file);
 			ps_queue_destroy(&cxt->queue);
 			return false;
 		}
-	} else if (strcmp(mode, "file") == 0) {
+	} else if (strcmp(mode, "file") == 0) { ///// REMEMBER
 		cxt->handle = pcap_open_offline(interface, errbuf);
 		if (!cxt->handle) {
 			fprintf(stderr, "pcap_create error: %s\n", errbuf);
@@ -130,7 +131,7 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 			ps_queue_destroy(&cxt->queue);
 			return false;
 		}
-	} else {
+	} else { ///// REMEMBER
 		fprintf(stderr, "Invalid mode: %s\n", mode);
 		free(cxt->connections);
 		fclose(cxt->output_file);

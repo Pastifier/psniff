@@ -80,7 +80,7 @@ typedef struct s_context {
     pthread_cond_t audit_cond;  // Condition variable for audit thread signaling
     time_t last_audit_time;     // Last time audit was performed
 
-    volatile _Atomic bool running;
+    int running;
     int verbose;            // Verbose logging flag
     
     // Hash table statistics
