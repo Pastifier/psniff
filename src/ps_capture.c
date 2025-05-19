@@ -108,8 +108,8 @@ static bool setup_pcap(t_context *cxt) {
 static int parse_ethernet(const u_char *bytes, t_parsed_packet *parsed) {
     const struct ethhdr *eth = (const struct ethhdr *)bytes;
 
-    memcpy(parsed->src_mac, eth, 6);
-    memcpy(parsed->dst_mac, eth + (sizeof(uint8_t) * 6), 6);
+    memcpy(parsed->src_mac, eth->h_source, 6);
+    memcpy(parsed->dst_mac, eth->h_dest, 6);
 
     if (ntohs(eth->h_proto) != ETH_P_IP) {
         return -1;
