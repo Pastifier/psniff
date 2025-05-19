@@ -132,7 +132,3 @@ This project deepened my understanding of:
 - Hash table design and collision resolution strategies
 - Performance optimization in real-time processing systems
 - System resource management and proper cleanup
-
-I'm particularly proud of the audit thread implementation, which efficiently cleans up inactive connections without wasting CPU cycles. The condition variable signaling mechanism ensures that the thread only wakes up when needed, balancing responsiveness with efficiency.
-
-Moving forward, I plan to extend pSniff with more protocol analyzers and visualization tools. The solid foundation of multi-threaded packet processing and connection tracking provides an excellent platform for these future enhancements.
