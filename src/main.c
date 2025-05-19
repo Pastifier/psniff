@@ -3,17 +3,32 @@
 #include <signal.h>
 #include <string.h>
 #include <stdatomic.h>
+#include <unistd.h>
 
 t_context* g_cxt = NULL;
+sig_atomic_t g_termination_requested = false;
 
 void signal_handler(int sig) {
 	if (sig == SIGINT || sig == SIGTERM) {
-		__atomic_store_n(&g_cxt->running, false, __ATOMIC_SEQ_CST);
-		ps_queue_close(&g_cxt->queue);
-		// cleanup(g_cxt); // Remember: dynamically allocated: -- 
-		// DECISION: cleanup here or after threads join in main?
-		
-		// Summary goes here (maybe?) 
+		g_termination_requested = true;
+
+		if (g_cxt) {
+			printf("\n[*] Terminating...\n");
+
+			__atomic_store_n(&g_cxt->running, false, __ATOMIC_SEQ_CST);
+			ps_queue_close(&g_cxt->queue);
+
+			if (g_cxt->handle) {
+				pcap_breakloop(g_cxt->handle);
+				g_cxt->handle = NULL;
+			}
+
+			ps_queue_close(&g_cxt->queue);
+		}
+	} else {
+		fprintf(stderr, "\n[!] Received unhandled signal: %d\n", sig);
+		fprintf(stderr, "[*] How did you get here anyway, huh..?\n");
+		// exit(128 + sig);
 	}
 }
 
@@ -29,7 +44,7 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 	char* mode = argv[2];
 	cxt->output_file = fopen(argv[3], "w");
 	if (!cxt->output_file) {
-		fprintf(stderr, "Failed to open output file %s\n", argv[3]);
+		fprintf(stderr, "[!] Failed to open output file %s\n", argv[3]);
 		return false;
 	}
 
@@ -37,7 +52,7 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 
 	cxt->connections = calloc(_PS_MAX_CONN, sizeof(t_tcp_conn));
 	if (!cxt->connections) {
-		fprintf(stderr, "Failed to allocate memory for connections\n");
+		fprintf(stderr, "[!] Failed to allocate memory for connections\n");
 		fclose(cxt->output_file);
 		ps_queue_destroy(&cxt->queue);
 		return false;
@@ -72,34 +87,82 @@ static bool init_context(t_context* cxt, int argc, char* argv[]) {
 		return false;
 	}
 
+	__atomic_store_n(&cxt->running, true, __ATOMIC_SEQ_CST);
+
 	return true;
 }
 
 static inline void cleanup(t_context* cxt) {
 	// pthread_mutex_destroy(&cxt->conn_mutex);
-	free(cxt->connections);
-	fclose(cxt->output_file);
-	ps_queue_destroy(&cxt->queue);
-	pcap_close(cxt->handle);
+	if (cxt) {
+		if (cxt->handle) pcap_close(cxt->handle);
+
+		if (cxt->connections) {
+			// pthread_mutex_lock(&cxt->conn_mutex);
+			printf("[*] Active connections during termination:\n");
+			for (int i = 0; i < _PS_MAX_CONN; i++) {
+				if (cxt->connections[i].is_active) {
+					gettimeofday(&cxt->connections[i].end_time, NULL);
+					print_connection_summary(cxt, i);
+				}
+			}
+			// pthread_mutex_unlock(&cxt->conn_mutex);
+			free(cxt->connections);
+		}
+		if (cxt->output_file)
+			fclose(cxt->output_file);
+
+		ps_queue_destroy(&cxt->queue);
+	}
 }
 
 int main(int argc, char *argv[]) {
 	if (argc == 4) {
-		signal(SIGINT, signal_handler);
-		signal(SIGTERM, signal_handler);
-
 		t_context cxt;
+
+		// signal(SIGINT, signal_handler); // DEPR
+		// signal(SIGTERM, signal_handler);
+
+		struct sigaction sa = (struct sigaction){0};
+		sa.sa_handler = signal_handler;
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = SA_RESTART;
+		if (sigaction(SIGINT, &sa, NULL) < 0 || sigaction(SIGTERM, &sa, NULL) < 0) {
+			fprintf(stderr, "[!] Failed to set signal handler\n");
+			return 2;
+		}
+
 		if (!init_context(&cxt, argc, argv)) {
 			return 2; // Fatal
 		}
 		g_cxt = &cxt;
 
+		printf("[+] Packet sniffer starting...\n");
+    	printf("[+] Source: %s\n", argv[1]);
+		printf("[+] Mode: %s\n", argv[2]);
+		printf("[+] Output: %s\n", argv[3]);
+
 
 		if (!ps_threads_init(&cxt)) {
-			fprintf(stderr, "Failed to initialize threads\n");
+			fprintf(stderr, "[!] Failed to initialize threads\n");
 			cleanup(&cxt);
 			return 1;
 		}
+
+		while (!g_termination_requested && __atomic_load_n(&cxt.running, __ATOMIC_SEQ_CST)) {
+			usleep(100000);
+		}
+
+		if (g_termination_requested) {
+			__atomic_store_n(&cxt.running, false, __ATOMIC_SEQ_CST);
+
+			if (cxt.handle) {
+				pcap_breakloop(cxt.handle);
+			}
+		}
+
+		printf("[+] Stopping capture. Please wait...\n");
+
 		ps_threads_join(&cxt);
 
 		cleanup(&cxt);
